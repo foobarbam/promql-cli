@@ -180,7 +180,7 @@ func (r *RangeResult) Csv(noHeaders bool) (bytes.Buffer, error) {
 
 // WriteRange writes out the results of the query to an
 // output buffer and prints it to stdout
-func WriteRange(r RangeWriter, format string, noHeaders bool) error {
+func WriteRange(r RangeWriter, format string, width int, height int, noHeaders bool) error {
 	var (
 		buf bytes.Buffer
 		err error
@@ -197,10 +197,17 @@ func WriteRange(r RangeWriter, format string, noHeaders bool) error {
 			return err
 		}
 	default:
-		dim, err := util.TerminalSize()
-		if err != nil {
-			return err
+    var dim util.TermDimensions
+
+    if width > 0 && height > 0 {
+      dim = util.TermDimensions{Width: width, Height: height}
+    } else {
+      dim, err = util.TerminalSize()
+      if err != nil {
+        return err
+      }
 		}
+
 		buf, err = r.Graph(dim)
 		if err != nil {
 			return err
