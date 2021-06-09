@@ -39,6 +39,8 @@ var (
 	start     string
 	end       string
 	noHeaders bool
+	width     int
+	height    int
 )
 
 // global error logger
@@ -113,7 +115,7 @@ func getRange(step, start, end string) (r v1.Range, err error) {
 }
 
 // rangeQuery performs a range query and writes the results to stdout
-func rangeQuery(host, queryString, output string, timeout time.Duration, r v1.Range) {
+func rangeQuery(host string, queryString string, width int, height int, output string, timeout time.Duration, r v1.Range) {
 	// Create client
 	client, err := promql.CreateClient(host)
 	if err != nil {
@@ -138,7 +140,7 @@ func rangeQuery(host, queryString, output string, timeout time.Duration, r v1.Ra
 	// desired output format
 	if result, ok := result.(model.Matrix); ok {
 		r := writer.RangeResult{Matrix: result}
-		if err := writer.WriteRange(&r, output, noHeaders); err != nil {
+		if err := writer.WriteRange(&r, output, width,  height, noHeaders); err != nil {
 			errlog.Println(err)
 		}
 	} else {
@@ -170,7 +172,7 @@ var rootCmd = &cobra.Command{
 				errlog.Fatalln(err)
 			}
 			// Execute our range query
-			rangeQuery(host, query, output, t, r)
+			rangeQuery(host, query, width, height, output, t, r)
 		} else {
 			instantQuery(host, query, output, t)
 		}
@@ -209,6 +211,8 @@ func init() {
 		errlog.Fatalln(err)
 	}
 
+  rootCmd.PersistentFlags().IntVar(&width, "width", 0, "custom terminal width")
+  rootCmd.PersistentFlags().IntVar(&height, "height", 0, "custom terminal Height")
 }
 
 // initConfig reads in config file and ENV variables if set.
